@@ -17,7 +17,7 @@ Heading
 
   Column 1              Column 2   Column 3
   --------------------- ---------- ----------
-  Now this looks good   Okay       
+  Now this looks good   Okay       missing
   Don’t agree           No         why
 
 
