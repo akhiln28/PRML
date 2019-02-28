@@ -15,9 +15,9 @@ Math equations are not working then lets try styles and table.
 Heading
 =======
 
-  Column 1              Column 2   Column 3
-  --------------------- ---------- ----------
-  Now this looks good   Okay       missing
-  Don’t agree           No         why
+| Column 1            | Column 2 | Column 3 |
+|---------------------|----------|----------|
+| Now this looks good | Okay     | missing  |
+| Don’t agree         | No       | why      |
 
 
