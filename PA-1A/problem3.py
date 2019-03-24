@@ -37,6 +37,7 @@ def phi(x, degree):
     for d in range(degree + 1):
         for i in range(d + 1):
             phi[count] = x[0]**i * x[1]**(d - i)
+            count += 1
     return phi
 
 
@@ -73,11 +74,17 @@ def visualise_polynomial_2d(wt_vector, degree, title=""):
     Give a contour plot over the 2d-data domain for the learned polynomial given by the weight vector wt_vector.
 
     """
-    # X, Y = np.meshgrid(np.linspace(-1, 1, 100), np.linspace(-1, 1, 100))
+    X, Y = np.meshgrid(np.linspace(-1, 1, 100), np.linspace(-1, 1, 100))
+    Z = np.zeros(X.shape)
+    for i in range(Z.shape[0]):
+        for j in range(Z.shape[1]):
+            point = np.array([X[i, j], Y[i, j]])
+            Z[i, j] = np.dot(wt_vector, phi(point, degree))
 
-    # plt.contourf(X, Y, Z, levels=np.linspace(0., 1.2, 20))
-    # plt.title('learned function : degree= ' + str(degree) + title)
-    # plt.colorbar()
+    plt.contourf(X, Y, Z, levels=np.linspace(0., 1.2, 20))
+    plt.title('learned function : degree= ' + str(degree) + title)
+    plt.colorbar()
+    plt.show()
 
 
 def polynomial_regression_ridge_train(X_train, Y_train, degree=1, reg_param=0.01):
@@ -126,6 +133,7 @@ def compute_BV_error_sample_plot(degree, reg_param, num_training_samples=50):
     Y_train = list(map(f, X_train))
     fs = polynomial_regression_ridge_train(X_train, Y_train, degree, reg_param)
 
+    # for computing g (the average)
     for i in range(100):
         X_train = 2 * np.random.rand(num_training_samples, 2) - 1
         Y_train = list(map(f, X_train))
@@ -142,7 +150,8 @@ def compute_BV_error_sample_plot(degree, reg_param, num_training_samples=50):
 
     var = 0
     for i in range(num_training_samples):
-        temp = np.dot(g, phi(X_train[i], degree)) - np.dot(fs, phi(X_train[i], degree))
+        temp = np.dot(g, phi(X_train[i], degree)) - \
+            np.dot(fs, phi(X_train[i], degree))
         var += temp * temp
     var /= num_training_samples
 
@@ -151,15 +160,59 @@ def compute_BV_error_sample_plot(degree, reg_param, num_training_samples=50):
         temp = f(X_train[i]) - np.dot(fs, phi(X_train[i], degree))
         mse += temp * temp
     mse /= num_training_samples
-    return np.sqrt(bias_sqr), var, mse - bias_sqr - var
+
+    # visualise_polynomial_2d(g, degree)
+
+    return np.sqrt(bias_sqr), var, mse
 
 
 for degree in [1, 2, 4, 8, 16]:
     for reg_param in [1e-9, 1e-7, 1e-5, 1e-3, 1e-1, 1e1]:
         plt.figure()
         b, v, e = compute_BV_error_sample_plot(degree, reg_param)
-        print('================================')
-        print('Degree= '+str(degree)+' lambda= '+str(reg_param))
-        print('Bias = '+str(b))
-        print('Variance = '+str(v))
-        print('MSE = '+str(e))
+        # print('================================')
+        # print('Degree= '+str(degree)+' lambda= '+str(reg_param))
+        # print('Bias = '+str(b))
+        # print('Variance = '+str(v))
+        # print('MSE = '+str(e))
+        print(round(b,3),round(v,3),round(e,3))
+    print()
+
+
+def error(degree, reg_param, X_train, Y_train):
+    # g is expectation of f_s
+    g = np.zeros(int((degree + 1)*(degree + 2)/2))
+    fs = polynomial_regression_ridge_train(X_train, Y_train, degree, reg_param)
+
+
+    # for computing g (the average)
+    for i in range(100):
+        X_train = 2 * np.random.rand(num_training_samples, 2) - 1
+        Y_train = list(map(f, X_train))
+        fs = polynomial_regression_ridge_train(
+            X_train, Y_train, degree, reg_param)
+        g += fs
+    g /= 100
+
+    mse = 0
+    for i in range(num_training_samples):
+        temp = f(X_train[i]) - np.dot(fs, phi(X_train[i], degree))
+        mse += temp * temp + reg_param/2 * np.dot(fs, fs)
+    mse /= num_training_samples
+
+    # visualise_polynomial_2d(g, degree)
+
+    return mse
+
+
+data = np.load('archive/dataset4_1.npz')
+
+# for num_training_samples in [50, 100, 200, 1000]:
+#     for degree in [1, 2, 4, 8, 16]:
+#         for reg_param in [1e-9, 1e-7, 1e-5, 1e-3, 1e-1, 1e1]:
+#             plt.figure()
+#             e = error(degree, reg_param, data['arr_0'][0:num_training_samples + 1],
+#                       data['arr_1'][0:num_training_samples + 1])
+#             print(e)
+#         print()
+#     print()
